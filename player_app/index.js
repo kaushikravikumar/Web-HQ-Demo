@@ -1,5 +1,12 @@
 var pubnub;
 
+var optionChosen;
+
+var buttonOptionA;
+var buttonOptionB;
+var buttonOptionC;
+var buttonOptionD;
+
 const grant_access_url = "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6a727412-91c6-11e8-b36b-922642fc525d/grantAccess";
 
 const subscribe_key = "sub-c-6a727412-91c6-11e8-b36b-922642fc525d";
@@ -86,25 +93,50 @@ function updateUI()
         document.getElementById('num_players').innerHTML = response.totalOccupancy;
     }
 );
+
+buttonOptionA = document.getElementById("optionA");
+buttonOptionB = document.getElementById("optionB");
+buttonOptionC = document.getElementById("optionC");
+buttonOptionD = document.getElementById("optionD");
+
+buttonOptionA.addEventListener("click", optionASelected);
+buttonOptionB.addEventListener("click", optionBSelected);
+buttonOptionC.addEventListener("click", optionCSelected);
+buttonOptionD.addEventListener("click", optionDSelected);
 }
 
 function showQuestion(msg)
 {
     document.getElementById('question').innerHTML = msg.question;
-    document.getElementById('optionA').innerHTML = msg.optionA;
-    document.getElementById('optionB').innerHTML = msg.optionB;
-    document.getElementById('optionC').innerHTML = msg.optionC;
-    document.getElementById('optionD').innerHTML = msg.optionD;
+    buttonOptionA.innerHTML = msg.optionA;
+    buttonOptionB.innerHTML = msg.optionB;
+    buttonOptionC.innerHTML = msg.optionC;
+    buttonOptionD.innerHTML = msg.optionD;
 
     var timeleft = 10;
     var gameTimer = setInterval(function() {
     document.getElementById("seconds").innerHTML = --timeleft;
     // Timer done!!
-    if (timeleft < 0) {
+    if (timeleft <= 0) {
         clearInterval(gameTimer);
-        alert('TIMES UP'); // DO STUFF HERE
+        // SUBMIT ANSWER!!
+        submitAnswer(optionChosen);
+        document.getElementById('answerOptions').style.visibility = "hidden";
       }
     }, 1000);
+}
+
+function submitAnswer(optionChosen)
+{
+  return pubnub.fire({
+          channel: "submitAnswer",
+          message: {
+            "answer": optionChosen
+          },
+          sendByPost: false,
+      }).then((publishResponse) => {
+          console.log(publishResponse.toString);
+      });
 }
 
 function showCorrectAnswer(msg)
@@ -117,6 +149,41 @@ function showAnswerResults(msg)
 
 }
 
+function optionASelected()
+{
+  optionChosen = "optionA";
+  buttonOptionA.classList.add("selected");
+  buttonOptionB.classList.remove("selected");
+  buttonOptionC.classList.remove("selected");
+  buttonOptionD.classList.remove("selected");
+}
+
+function optionBSelected()
+{
+  optionChosen = "optionB";
+  buttonOptionA.classList.remove("selected");
+  buttonOptionB.classList.add("selected");
+  buttonOptionC.classList.remove("selected");
+  buttonOptionD.classList.remove("selected");
+}
+
+function optionCSelected()
+{
+  optionChosen = "optionC";
+  buttonOptionA.classList.remove("selected");
+  buttonOptionB.classList.remove("selected");
+  buttonOptionC.classList.add("selected");
+  buttonOptionD.classList.remove("selected");
+}
+
+function optionDSelected()
+{
+  optionChosen = "optionD";
+  buttonOptionA.classList.remove("selected");
+  buttonOptionB.classList.remove("selected");
+  buttonOptionC.classList.remove("selected");
+  buttonOptionD.classList.add("selected");
+}
 
 
 /**
