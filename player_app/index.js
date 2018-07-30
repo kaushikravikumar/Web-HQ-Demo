@@ -7,6 +7,11 @@ var buttonOptionB;
 var buttonOptionC;
 var buttonOptionD;
 
+var optionAText;
+var optionBText;
+var optionCText;
+var optionDText;
+
 const grant_access_url = "https://pubsub.pubnub.com/v1/blocks/sub-key/sub-c-6a727412-91c6-11e8-b36b-922642fc525d/grantAccess";
 
 const subscribe_key = "sub-c-6a727412-91c6-11e8-b36b-922642fc525d";
@@ -111,10 +116,18 @@ buttonOptionD.addEventListener("click", optionDSelected);
 function showQuestion(msg)
 {
     document.getElementById('question').innerHTML = msg.question;
-    buttonOptionA.innerHTML = msg.optionA;
-    buttonOptionB.innerHTML = msg.optionB;
-    buttonOptionC.innerHTML = msg.optionC;
-    buttonOptionD.innerHTML = msg.optionD;
+
+    optionAText = msg.optionA;
+    optionBText = msg.optionB;
+    optionCText = msg.optionC;
+    optionDText = msg.optionD;
+
+    buttonOptionA.innerHTML = optionAText;
+    buttonOptionB.innerHTML = optionBText;
+    buttonOptionC.innerHTML = optionCText;
+    buttonOptionD.innerHTML = optionDText;
+
+    document.getElementById("seconds-left").style.visibility = "visible";
 
     var timeleft = 10;
     var gameTimer = setInterval(function() {
@@ -124,32 +137,95 @@ function showQuestion(msg)
         clearInterval(gameTimer);
         // SUBMIT ANSWER!!
         submitAnswer(optionChosen);
-        document.getElementById('answerOptions').style.visibility = "hidden";
+        document.getElementById('answerOptions').style.visibility = "collapse";
       }
     }, 1000);
 }
 
 function submitAnswer(optionChosen)
 {
-  return pubnub.fire({
+      pubnub.fire({
           channel: "submitAnswer",
           message: {
             "answer": optionChosen
           },
           sendByPost: false,
       }).then((publishResponse) => {
-          console.log(publishResponse.toString);
+          console.log(publishResponse);
       });
 }
 
 function showCorrectAnswer(msg)
 {
+  var correct = msg.correct;
+  var correctAnswerMessage = "";
+  if (optionChosen == null) {
+    correctAnswerMessage += "You ran out of time. ";
+  } else if (optionChosen === correct) {
+    correctAnswerMessage += "Good Job! ";
+  } else {
+    correctAnswerMessage += "Sorry, you are wrong. ";
+  }
 
+  if (correct === "optionA") {
+      correctAnswerMessage += optionAText;
+  } else if (correct === "optionB") {
+      correctAnswerMessage += optionBText;
+  } else if (correct === "optionC") {
+      correctAnswerMessage += optionCText;
+  } else if (correct === "optionD") {
+      correctAnswerMessage += optionDText;
+  }
+  correctAnswerMessage += " was the correct answer.";
+  var correctAnswerText = document.getElementById('correctAnswer');
+  correctAnswerText.classList.remove("correctAnswer");
+  correctAnswerText.classList.add("showCorrectAnswer");
+  correctAnswerText.innerHTML = correctAnswerMessage;
 }
 
 function showAnswerResults(msg)
 {
+  var countA = msg.optionA;
+  var countB = msg.optionB;
+  var countC = msg.optionC;
+  var countD = msg.optionD;
 
+  var xValue = [countD, countC, countB, countA];
+
+  var yValue = [optionDText, optionCText, optionBText, optionAText];
+
+  var data = [{
+    type: 'bar',
+    x: xValue,
+    y: yValue,
+    marker:{
+    color: ['rgb(70, 32, 102)', 'rgb(255, 184, 95)', 'rgb(255, 122, 90)', 'rgb(0, 170, 160)']
+    },
+    text: xValue,
+    textposition: 'auto',
+    orientation: 'h'
+  }];
+
+  var layout = {
+    xaxis: {
+    showgrid: false,
+    zeroline: false,
+    showticklabels: false
+  },
+  yaxis: {
+    showgrid: false,
+    automargin: true,
+    zeroline: false,
+  },
+    showlegend: false
+  };
+
+  Plotly.newPlot('answerResults', data, layout, {displayModeBar: false});
+
+  var answerResultsChart = document.getElementById("answerResults");
+
+  answerResultsChart.classList.remove("answerResults");
+  answerResultsChart.classList.add("showAnswerResults");
 }
 
 function optionASelected()
