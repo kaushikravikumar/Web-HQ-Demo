@@ -66,6 +66,9 @@ function updateUI()
           var channelName = m.channel; // The channel for which the message belongs
           if(channelName === 'question_post')
           {
+              var loadingBar = document.getElementById("loading");
+              loadingBar.classList.remove("show");
+              loadingBar.classList.add("loading");
               showQuestion(msg);
           }
           else if(channelName === 'answer_post')
